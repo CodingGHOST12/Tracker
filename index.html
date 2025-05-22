@@ -82,7 +82,8 @@
             align-items: center;
             padding: 14px 20px;
             border-bottom: 1px solid #f3f4f6;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+            cursor: pointer;
         }
         .habit-item:hover {
             background-color: #f9fafb;
@@ -97,6 +98,7 @@
             flex-grow: 1;
             font-size: 16px;
             font-weight: 500;
+            user-select: none;
         }
         .habit-color-indicator {
             width: 18px;
@@ -165,6 +167,14 @@
         .empty-state p {
             margin-top: 10px;
         }
+        .habit-item.deleting {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body>
@@ -206,6 +216,7 @@
         let selectedColor = '#EF4444';
         let habits = {};
         let userName = 'User';
+        let deleteTimeout = null;
         
         // Initialize the app
         function init() {
@@ -316,6 +327,15 @@
             renderHabits();
         }
         
+        // Delete a habit
+        function deleteHabit(habitName) {
+            if (confirm(`Are you sure you want to delete "${habitName}"?`)) {
+                delete habits[habitName];
+                saveData();
+                renderHabits();
+            }
+        }
+        
         // Render habits for current day
         function renderHabits() {
             const container = document.getElementById('habitsContainer');
@@ -340,11 +360,22 @@
                 const habitItem = document.createElement('div');
                 habitItem.className = 'habit-item';
                 
+                // Add double-click event for deletion
+                habitItem.addEventListener('dblclick', () => {
+                    habitItem.classList.add('deleting');
+                    setTimeout(() => {
+                        deleteHabit(habitName);
+                    }, 500);
+                });
+                
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.className = 'habit-checkbox';
                 checkbox.checked = isCompleted;
-                checkbox.onclick = () => toggleHabitCompletion(habitName);
+                checkbox.onclick = (e) => {
+                    e.stopPropagation(); // Prevent triggering the double-click
+                    toggleHabitCompletion(habitName);
+                };
                 
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'habit-name';
