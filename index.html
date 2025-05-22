@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Habit Tracker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .name-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .name {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .edit-btn {
+            background: none;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .edit-btn:hover {
+            background: #f3f4f6;
+        }
+        .date-navigation {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .nav-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            color: #4b5563;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover {
+            color: #111827;
+        }
+        .current-date {
+            font-size: 18px;
+            font-weight: 600;
+            min-width: 220px;
+            text-align: center;
+            color: #111827;
+        }
+        .habits-container {
+            background: white;
+            border-radius: 10px;
+            padding: 5px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            min-height: 200px;
+        }
+        .habit-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.2s;
+        }
+        .habit-item:hover {
+            background-color: #f9fafb;
+        }
+        .habit-checkbox {
+            margin-right: 16px;
+            transform: scale(1.4);
+            cursor: pointer;
+            accent-color: #3b82f6;
+        }
+        .habit-name {
+            flex-grow: 1;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .habit-color-indicator {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            margin-left: 12px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .add-habit-form {
+            display: flex;
+            margin-top: 25px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .add-habit-input {
+            flex-grow: 1;
+            padding: 12px 16px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+        }
+        .add-habit-btn {
+            padding: 0 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .add-habit-btn:hover {
+            background: #2563eb;
+        }
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .color-option {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        .color-option.selected {
+            border-color: #1f2937;
+            transform: scale(1.1);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+        .empty-state p {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="name-section">
+            <div class="name" id="userName">User</div>
+            <button class="edit-btn" onclick="editName()">Edit</button>
+        </div>
+        <div class="date-navigation">
+            <button class="nav-btn" onclick="prevDay()">←</button>
+            <div class="current-date" id="currentDate"></div>
+            <button class="nav-btn" onclick="nextDay()">→</button>
+        </div>
+    </div>
+
+    <div class="habits-container" id="habitsContainer">
+        <div class="empty-state" id="emptyState">
+            <h3>No habits yet</h3>
+            <p>Add your first habit below</p>
+        </div>
+    </div>
+
+    <div class="add-habit-form">
+        <input type="text" class="add-habit-input" id="habitInput" placeholder="Add a new habit (e.g. 'Drink water')">
+        <button class="add-habit-btn" onclick="addHabit()">Add</button>
+    </div>
+    <div class="color-picker">
+        <div class="color-option selected" style="background-color: #EF4444;" data-color="#EF4444"></div>
+        <div class="color-option" style="background-color: #3B82F6;" data-color="#3B82F6"></div>
+        <div class="color-option" style="background-color: #10B981;" data-color="#10B981"></div>
+        <div class="color-option" style="background-color: #F59E0B;" data-color="#F59E0B"></div>
+        <div class="color-option" style="background-color: #8B5CF6;" data-color="#8B5CF6"></div>
+        <div class="color-option" style="background-color: #EC4899;" data-color="#EC4899"></div>
+    </div>
+
+    <script>
+        // App state
+        let currentDate = new Date();
+        let selectedColor = '#EF4444';
+        let habits = {};
+        let userName = 'User';
+        
+        // Initialize the app
+        function init() {
+            loadData();
+            updateDateDisplay();
+            renderHabits();
+            
+            // Set up event listeners
+            document.getElementById('habitInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addHabit();
+            });
+            
+            // Color picker
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.color-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    selectedColor = this.dataset.color;
+                });
+            });
+        }
+        
+        // Load all data from localStorage
+        function loadData() {
+            // Load user name
+            const savedName = localStorage.getItem('habitTracker_userName');
+            if (savedName) {
+                userName = savedName;
+                document.getElementById('userName').textContent = userName;
+            }
+            
+            // Load habits
+            const savedHabits = localStorage.getItem('habitTracker_habits');
+            if (savedHabits) {
+                habits = JSON.parse(savedHabits);
+            }
+        }
+        
+        // Save all data to localStorage
+        function saveData() {
+            localStorage.setItem('habitTracker_userName', userName);
+            localStorage.setItem('habitTracker_habits', JSON.stringify(habits));
+        }
+        
+        // Update the date display
+        function updateDateDisplay() {
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            document.getElementById('currentDate').textContent = 
+                currentDate.toLocaleDateString('en-US', options);
+        }
+        
+        // Navigate to previous day
+        function prevDay() {
+            currentDate.setDate(currentDate.getDate() - 1);
+            updateDateDisplay();
+            renderHabits();
+        }
+        
+        // Navigate to next day
+        function nextDay() {
+            currentDate.setDate(currentDate.getDate() + 1);
+            updateDateDisplay();
+            renderHabits();
+        }
+        
+        // Edit user name
+        function editName() {
+            const newName = prompt('Enter your name:', userName);
+            if (newName !== null && newName.trim() !== '') {
+                userName = newName.trim();
+                document.getElementById('userName').textContent = userName;
+                saveData();
+            }
+        }
+        
+        // Add a new habit
+        function addHabit() {
+            const habitInput = document.getElementById('habitInput');
+            const habitName = habitInput.value.trim();
+            
+            if (habitName) {
+                if (!habits[habitName]) {
+                    habits[habitName] = {
+                        color: selectedColor,
+                        completions: {}
+                    };
+                    saveData();
+                    renderHabits();
+                }
+                habitInput.value = '';
+                habitInput.focus();
+            }
+        }
+        
+        // Toggle habit completion for current day
+        function toggleHabitCompletion(habitName) {
+            const dateKey = formatDateKey(currentDate);
+            
+            if (!habits[habitName].completions[dateKey]) {
+                habits[habitName].completions[dateKey] = true;
+            } else {
+                delete habits[habitName].completions[dateKey];
+            }
+            
+            saveData();
+            renderHabits();
+        }
+        
+        // Render habits for current day
+        function renderHabits() {
+            const container = document.getElementById('habitsContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (Object.keys(habits).length === 0) {
+                emptyState.style.display = 'block';
+                container.innerHTML = '';
+                container.appendChild(emptyState);
+                return;
+            } else {
+                emptyState.style.display = 'none';
+            }
+            
+            container.innerHTML = '';
+            const dateKey = formatDateKey(currentDate);
+            
+            for (const habitName in habits) {
+                const habit = habits[habitName];
+                const isCompleted = habit.completions[dateKey] || false;
+                
+                const habitItem = document.createElement('div');
+                habitItem.className = 'habit-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'habit-checkbox';
+                checkbox.checked = isCompleted;
+                checkbox.onclick = () => toggleHabitCompletion(habitName);
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'habit-name';
+                nameSpan.textContent = habitName;
+                
+                const colorIndicator = document.createElement('div');
+                colorIndicator.className = 'habit-color-indicator';
+                colorIndicator.style.backgroundColor = habit.color;
+                
+                habitItem.appendChild(checkbox);
+                habitItem.appendChild(nameSpan);
+                habitItem.appendChild(colorIndicator);
+                container.appendChild(habitItem);
+            }
+        }
+        
+        // Format date as YYYY-MM-DD for storage
+        function formatDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        
+        // Initialize the app when page loads
+        window.onload = init;
+    </script>
+</body>
+</html>
