@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker with Navigation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --border: #dee2e6;
+            --bg-color: #f5f7ff;
+            --card-bg: white;
+            --text-color: #212529;
+            --nav-bg: white;
+        }
+
+        .dark-mode {
+            --primary: #4895ef;
+            --secondary: #4361ee;
+            --light: #2b2d42;
+            --dark: #f8f9fa;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --border: #4a4e69;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #f8f9fa;
+            --nav-bg: #2b2d42;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: var(--nav-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-link {
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-link.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .nav-link:not(.active):hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        /* Settings Panel - Fixed to be initially hidden */
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -300px; /* Start completely off-screen */
+            width: 300px;
+            height: 100vh;
+            background-color: var(--card-bg);
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            padding: 20px;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            visibility: hidden; /* Initially hidden */
+            opacity: 0; /* Initially transparent */
+        }
+
+        .settings-panel.open {
+            right: 0;
+            visibility: visible; /* Show when open */
+            opacity: 1; /* Make fully visible */
+            transition: right 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .settings-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .close-settings {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .settings-option {
+            margin-bottom: 20px;
+        }
+
+        .settings-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Rest of your existing styles... */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .name-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .edit-btn {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            color: var(--text-color);
+        }
+
+        .edit-btn:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .date-section {
+            text-align: right;
+        }
+
+        .current-day {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        .current-date {
+            font-size: 1rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .habit-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .habit-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .date-input {
+            background: var(--card-bg);
+            cursor: pointer;
+        }
+
+        .add-btn {
+            align-self: flex-end;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .add-btn:hover {
+            background-color: var(--secondary);
+        }
+
+        .habits-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .habit-item {
+            background: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .habit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: var(--light);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .habit-info {
+            flex: 1;
+        }
+
+        .habit-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
+
+        .habit-dates {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .habit-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            border-radius: 6px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background-color: rgba(247, 37, 133, 0.1);
+        }
+
+        .date-set-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            color: var(--primary);
+        }
+
+        .date-range-display {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .days-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 20px;
+            scrollbar-width: none;
+        }
+
+        .days-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .day-box {
+            min-width: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .day-header {
+            text-align: center;
+            padding: 5px;
+            border-radius: 6px;
+            background: var(--light);
+            width: 100%;
+            border: 1px solid var(--border);
+        }
+
+        .day-date {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .day-name {
+            font-size: 0.8rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+
+        .habit-checkbox {
+            transform: scale(1.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        /* Page sections */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* Overlay for settings - with smooth transition */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Streak specific styles */
+        .streak-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .streak-item {
+            background: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            padding: 15px;
+        }
+
+        .streak-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .streak-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .streak-days {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .streak-date {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .streak-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .log-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .log-btn:hover {
+            background-color: var(--secondary);
+        }
+
+        .reset-btn {
+            background: none;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            border-radius: 6px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .reset-btn:hover {
+            background-color: rgba(247, 37, 133, 0.1);
+        }
+
+        /* To-Do List Specific Styles */
+        .todo-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            padding: 8px 15px;
+            border-radius: 6px;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .filter-btn:not(.active):hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .todos-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .todo-item {
+            background: var(--card-bg);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .todo-checkbox {
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        .todo-content {
+            flex: 1;
+        }
+
+        .todo-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .todo-date {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .todo-edit-btn {
+            background: none;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .todo-delete-btn {
+            background: none;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .todo-edit-btn:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .todo-delete-btn:hover {
+            background-color: rgba(247, 37, 133, 0.1);
+        }
+
+        .todo-item.completed .todo-name {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .todo-item.completed .todo-date {
+            opacity: 0.5;
+        }
+
+        .error-message {
+            color: var(--danger);
+            margin-bottom: 15px;
+            display: none;
+            padding: 10px;
+            background-color: rgba(247, 37, 133, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid var(--danger);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-logo">Habit Tracker</div>
+        <div class="nav-links">
+            <div class="nav-link active" data-section="work-done">Work Done</div>
+            <div class="nav-link" data-section="habit-making">Habit Making</div>
+            <div class="nav-link" data-section="todo-list">To-Do List</div>
+        </div>
+        <button class="settings-btn" id="settingsBtn">⚙️</button>
+    </nav>
+
+    <!-- Settings Panel - Initially hidden -->
+    <div class="overlay" id="overlay"></div>
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <div class="settings-title">Settings</div>
+            <button class="close-settings" id="closeSettings">&times;</button>
+        </div>
+        <div class="settings-option">
+            <label class="settings-label">Dark Mode</label>
+            <label class="toggle-switch">
+                <input type="checkbox" id="darkModeToggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="settings-option">
+            <label class="settings-label" for="userNameInput">Your Name</label>
+            <input type="text" class="habit-input" id="userNameInput" placeholder="Enter your name">
+            <button class="add-btn" id="saveNameBtn" style="margin-top: 10px;">Save Name</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Work Done Section -->
+        <div class="page-section active" id="work-done">
+            <div class="header">
+                <div class="name-section">
+                    <div class="user-name" id="userName">User</div>
+                </div>
+                <div class="date-section">
+                    <div class="current-day" id="currentDay"></div>
+                    <div class="current-date" id="currentDate"></div>
+                </div>
+            </div>
+            
+            <div class="habit-form">
+                <div class="form-group">
+                    <label class="form-label" for="habitInput">Habit Name</label>
+                    <input type="text" class="habit-input" id="habitInput" placeholder="Enter habit name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="startDate">Start Date</label>
+                    <input type="text" class="habit-input date-input" id="startDate" placeholder="Select start date">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="endDate">End Date</label>
+                    <input type="text" class="habit-input date-input" id="endDate" placeholder="Select end date">
+                </div>
+                <button class="add-btn" id="addBtn">Add Habit</button>
+            </div>
+            
+            <ul class="habits-list" id="habitsList">
+                <!-- Habits will be inserted here -->
+            </ul>
+        </div>
+
+        <!-- Habit Making Section -->
+        <div class="page-section" id="habit-making">
+            <div class="header">
+                <div class="name-section">
+                    <div class="user-name" id="userNameHabitMaking">User</div>
+                </div>
+                <div class="date-section">
+                    <div class="current-day" id="currentDayHabitMaking"></div>
+                    <div class="current-date" id="currentDateHabitMaking"></div>
+                </div>
+            </div>
+            
+            <div class="streak-form">
+                <div class="form-group">
+                    <label class="form-label" for="streakNameInput">Streak Name</label>
+                    <input type="text" class="habit-input" id="streakNameInput" placeholder="Enter streak name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="streakStartDate">Start Date</label>
+                    <input type="text" class="habit-input date-input" id="streakStartDate" placeholder="Select start date">
+                </div>
+                <button class="add-btn" id="addStreakBtn">Start Streak</button>
+            </div>
+            
+            <div id="streaksList">
+                <!-- Streaks will be inserted here -->
+            </div>
+        </div>
+
+        <!-- To-Do List Section -->
+        <div class="page-section" id="todo-list">
+            <div class="header">
+                <div class="name-section">
+                    <div class="user-name" id="userNameTodo">User</div>
+                </div>
+                <div class="date-section">
+                    <div class="current-day" id="currentDayTodo"></div>
+                    <div class="current-date" id="currentDateTodo"></div>
+                </div>
+            </div>
+            
+            <div class="habit-form">
+                <div class="form-group">
+                    <label class="form-label" for="todoInput">Task Name</label>
+                    <input type="text" class="habit-input" id="todoInput" placeholder="Enter task name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="todoDueDate">Due Date</label>
+                    <input type="text" class="habit-input date-input" id="todoDueDate" placeholder="Select due date">
+                </div>
+                <button class="add-btn" id="addTodoBtn">Add Task</button>
+            </div>
+            
+            <div class="todo-filters">
+                <button class="filter-btn active" data-filter="all">All Tasks</button>
+                <button class="filter-btn" data-filter="pending">Pending</button>
+                <button class="filter-btn" data-filter="completed">Completed</button>
+            </div>
+            
+            <div class="error-message" id="todoError"></div>
+            
+            <ul class="todos-list" id="todosList">
+                <!-- Todos will be inserted here -->
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // Initialize variables
+        let habits = JSON.parse(localStorage.getItem("habits")) || [];
+        let streaks = JSON.parse(localStorage.getItem("streaks")) || [];
+        let todos = JSON.parse(localStorage.getItem("todos")) || [];
+        let userName = localStorage.getItem("userName") || "User";
+        const currentDateObj = new Date();
+        const DAYS_PER_SET = 12;
+        let darkMode = localStorage.getItem("darkMode") === "true";
+
+        // DOM elements
+        const userNameElement = document.getElementById("userName");
+        const userNameHabitMakingElement = document.getElementById("userNameHabitMaking");
+        const userNameTodoElement = document.getElementById("userNameTodo");
+        const currentDayElement = document.getElementById("currentDay");
+        const currentDateElement = document.getElementById("currentDate");
+        const currentDayHabitMakingElement = document.getElementById("currentDayHabitMaking");
+        const currentDateHabitMakingElement = document.getElementById("currentDateHabitMaking");
+        const currentDayTodoElement = document.getElementById("currentDayTodo");
+        const currentDateTodoElement = document.getElementById("currentDateTodo");
+        const habitInput = document.getElementById("habitInput");
+        const startDateInput = document.getElementById("startDate");
+        const endDateInput = document.getElementById("endDate");
+        const addBtn = document.getElementById("addBtn");
+        const habitsList = document.getElementById("habitsList");
+        const navLinks = document.querySelectorAll(".nav-link");
+        const pageSections = document.querySelectorAll(".page-section");
+        const settingsBtn = document.getElementById("settingsBtn");
+        const closeSettings = document.getElementById("closeSettings");
+        const settingsPanel = document.getElementById("settingsPanel");
+        const overlay = document.getElementById("overlay");
+        const darkModeToggle = document.getElementById("darkModeToggle");
+        const userNameInput = document.getElementById("userNameInput");
+        const saveNameBtn = document.getElementById("saveNameBtn");
+        
+        // Streak elements
+        const streakNameInput = document.getElementById("streakNameInput");
+        const streakStartDateInput = document.getElementById("streakStartDate");
+        const addStreakBtn = document.getElementById("addStreakBtn");
+        const streaksList = document.getElementById("streaksList");
+
+        // Todo elements
+        const todoInput = document.getElementById("todoInput");
+        const todoDueDateInput = document.getElementById("todoDueDate");
+        const addTodoBtn = document.getElementById("addTodoBtn");
+        const todosList = document.getElementById("todosList");
+        const filterButtons = document.querySelectorAll(".filter-btn");
+        const todoError = document.getElementById("todoError");
+
+        // Initialize date pickers
+        const startDatePicker = flatpickr(startDateInput, {
+            dateFormat: "Y-m-d",
+            defaultDate: "today",
+            onChange: function (selectedDates, dateStr) {
+                endDatePicker.set("minDate", dateStr);
+            },
+        });
+
+        const endDatePicker = flatpickr(endDateInput, {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+        });
+
+        const streakStartDatePicker = flatpickr(streakStartDateInput, {
+            dateFormat: "Y-m-d",
+            defaultDate: "today",
+        });
+
+        const todoDueDatePicker = flatpickr(todoDueDateInput, {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+        });
+
+        // Apply dark mode if enabled
+        if (darkMode) {
+            document.body.classList.add("dark-mode");
+            darkModeToggle.checked = true;
+        }
+
+        // Format date as "Tuesday, May 21"
+        function formatDate(date) {
+            const options = { weekday: "long", month: "long", day: "numeric" };
+            return date.toLocaleDateString("en-US", options);
+        }
+
+        // Format date as "May 21, 2023"
+        function formatFullDate(date) {
+            const options = { year: "numeric", month: "long", day: "numeric" };
+            return date.toLocaleDateString("en-US", options);
+        }
+
+        // Format date as "YYYY-MM-DD"
+        function formatYMD(date) {
+            return date.toISOString().split("T")[0];
+        }
+
+        // Format date as "MMM D" (May 23)
+        function formatShortDate(date) {
+            const options = { month: "short", day: "numeric" };
+            return date.toLocaleDateString("en-US", options);
+        }
+
+        // Format day as "Mon", "Tue" etc.
+        function formatDay(date) {
+            const options = { weekday: "short" };
+            return date.toLocaleDateString("en-US", options);
+        }
+
+        // Get dates in range (inclusive)
+        function getDatesInRange(startDate, endDate) {
+            const dates = [];
+            let currentDate = new Date(startDate);
+            const end = new Date(endDate);
+
+            while (currentDate <= end) {
+                dates.push(new Date(currentDate));
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+
+            return dates;
+        }
+
+        // Get date sets (12 days per set)
+        function getDateSets(dates) {
+            const sets = [];
+            for (let i = 0; i < dates.length; i += DAYS_PER_SET) {
+                sets.push(dates.slice(i, i + DAYS_PER_SET));
+            }
+            return sets;
+        }
+
+        // Update current date display
+        function updateCurrentDate() {
+            currentDayElement.textContent = formatDate(currentDateObj);
+            currentDateElement.textContent = formatFullDate(currentDateObj);
+            currentDayHabitMakingElement.textContent = formatDate(currentDateObj);
+            currentDateHabitMakingElement.textContent = formatFullDate(currentDateObj);
+            currentDayTodoElement.textContent = formatDate(currentDateObj);
+            currentDateTodoElement.textContent = formatFullDate(currentDateObj);
+        }
+
+        // Render all habits with date sets
+        function renderHabits() {
+            habitsList.innerHTML = "";
+
+            if (habits.length === 0) {
+                habitsList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No habits yet</h3>
+                        <p>Add your first habit to get started</p>
+                    </div>
+                `;
+                return;
+            }
+
+            habits.forEach((habit, habitIndex) => {
+                const li = document.createElement("li");
+                li.className = "habit-item";
+
+                // Create habit header
+                const habitHeader = document.createElement("div");
+                habitHeader.className = "habit-header";
+                habitHeader.innerHTML = `
+                    <div class="habit-info">
+                        <div class="habit-name">${habit.name}</div>
+                        <div class="habit-dates">${formatFullDate(
+                          new Date(habit.startDate)
+                        )} to ${formatFullDate(new Date(habit.endDate))}</div>
+                    </div>
+                    <div class="habit-actions">
+                        <button class="delete-btn" data-index="${habitIndex}">Delete</button>
+                    </div>
+                `;
+
+                li.appendChild(habitHeader);
+
+                // Get all dates for this habit
+                const allDates = getDatesInRange(habit.startDate, habit.endDate);
+                const dateSets = getDateSets(allDates);
+
+                // Track current date set for this habit
+                if (!habit.currentSet) habit.currentSet = 0;
+
+                // Create date set navigation
+                if (dateSets.length > 1) {
+                    const nav = document.createElement("div");
+                    nav.className = "date-set-navigation";
+                    nav.innerHTML = `
+                        <button class="nav-btn prev-btn" data-index="${habitIndex}">&lt; Previous</button>
+                        <div class="date-range-display">
+                            Set ${habit.currentSet + 1} of ${dateSets.length}
+                        </div>
+                        <button class="nav-btn next-btn" data-index="${habitIndex}">Next &gt;</button>
+                    `;
+                    li.appendChild(nav);
+                }
+
+                // Create days container for current set
+                const daysContainer = document.createElement("div");
+                daysContainer.className = "days-container";
+
+                // Get current date set
+                const currentSet = dateSets[habit.currentSet] || [];
+
+                // Add day boxes for current set
+                currentSet.forEach((date) => {
+                    const dateStr = formatYMD(date);
+                    const isChecked =
+                      habit.completedDays && habit.completedDays.includes(dateStr);
+
+                    const dayBox = document.createElement("div");
+                    dayBox.className = "day-box";
+                    dayBox.innerHTML = `
+                        <div class="day-header">
+                            <div class="day-date">${formatShortDate(date)}</div>
+                            <div class="day-name">${formatDay(date)}</div>
+                        </div>
+                        <input type="checkbox" class="habit-checkbox" 
+                               ${isChecked ? "checked" : ""}
+                               data-habit-index="${habitIndex}"
+                               data-date="${dateStr}">
+                    `;
+
+                    // Add event listener to checkbox
+                    const checkbox = dayBox.querySelector("input");
+                    checkbox.addEventListener("change", function () {
+                      updateHabitCompletion(
+                        this.dataset.habitIndex,
+                        this.dataset.date,
+                        this.checked
+                      );
+                    });
+
+                    daysContainer.appendChild(dayBox);
+                });
+
+                li.appendChild(daysContainer);
+                habitsList.appendChild(li);
+            });
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll(".delete-btn").forEach((btn) => {
+                btn.addEventListener("click", function () {
+                    const index = this.getAttribute("data-index");
+                    deleteHabit(index);
+                });
+            });
+
+            // Add event listeners to navigation buttons
+            document.querySelectorAll(".prev-btn").forEach((btn) => {
+                btn.addEventListener("click", function () {
+                    const index = this.getAttribute("data-index");
+                    navigateDateSet(index, -1);
+                });
+            });
+
+            document.querySelectorAll(".next-btn").forEach((btn) => {
+                btn.addEventListener("click", function () {
+                    const index = this.getAttribute("data-index");
+                    navigateDateSet(index, 1);
+                });
+            });
+        }
+
+        // Render all streaks
+        function renderStreaks() {
+            streaksList.innerHTML = "";
+
+            if (streaks.length === 0) {
+                streaksList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No streaks yet</h3>
+                        <p>Start your first streak to begin tracking</p>
+                    </div>
+                `;
+                return;
+            }
+
+            streaks.forEach((streak, index) => {
+                const streakElement = document.createElement("div");
+                streakElement.className = "streak-item";
+                
+                // Calculate days since start date
+                const startDate = new Date(streak.startDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                // Calculate days in streak (including today if logged)
+                let daysInStreak = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                
+                // Check if streak was logged today
+                const todayStr = formatYMD(today);
+                const lastLoggedDate = streak.lastLogged ? new Date(streak.lastLogged) : null;
+                const lastLoggedStr = lastLoggedDate ? formatYMD(lastLoggedDate) : null;
+                const isLoggedToday = lastLoggedStr === todayStr;
+                
+                // If not logged today, subtract one day (since we added 1 initially)
+                if (!isLoggedToday && daysInStreak > 0) {
+                    daysInStreak--;
+                }
+                
+                streakElement.innerHTML = `
+                    <div class="streak-header">
+                        <div class="streak-name">${streak.name}</div>
+                        <button class="delete-btn" data-streak-index="${index}">Delete</button>
+                    </div>
+                    <div class="streak-days">${daysInStreak} day${daysInStreak !== 1 ? 's' : ''}</div>
+                    <div class="streak-date">Started on ${formatFullDate(startDate)}</div>
+                    <div class="streak-date">${isLoggedToday ? 'Logged today' : lastLoggedDate ? `Last logged on ${formatFullDate(lastLoggedDate)}` : 'Not logged yet'}</div>
+                    <div class="streak-actions">
+                        <button class="log-btn" data-streak-index="${index}">Log Today</button>
+                        <button class="reset-btn" data-streak-index="${index}">Reset</button>
+                    </div>
+                `;
+                
+                streaksList.appendChild(streakElement);
+            });
+
+            // Add event listeners to streak buttons
+            document.querySelectorAll(".log-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const index = this.getAttribute("data-streak-index");
+                    logStreakDay(index);
+                });
+            });
+
+            document.querySelectorAll(".reset-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const index = this.getAttribute("data-streak-index");
+                    resetStreak(index);
+                });
+            });
+
+            document.querySelectorAll(".delete-btn[data-streak-index]").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const index = this.getAttribute("data-streak-index");
+                    deleteStreak(index);
+                });
+            });
+        }
+
+        // Render todos
+        function renderTodos(filter = "all") {
+            todosList.innerHTML = "";
+            todoError.style.display = "none";
+
+            if (todos.length === 0) {
+                todosList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No tasks yet</h3>
+                        <p>Add your first task to get started</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let filteredTodos = todos;
+            if (filter === "pending") {
+                filteredTodos = todos.filter(todo => !todo.completed);
+            } else if (filter === "completed") {
+                filteredTodos = todos.filter(todo => todo.completed);
+            }
+
+            filteredTodos.forEach((todo, index) => {
+                const li = document.createElement("li");
+                li.className = `todo-item ${todo.completed ? "completed" : ""}`;
+                
+                li.innerHTML = `
+                    <input type="checkbox" class="todo-checkbox" 
+                           ${todo.completed ? "checked" : ""}
+                           data-index="${index}">
+                    <div class="todo-content">
+                        <div class="todo-name">${todo.name}</div>
+                        <div class="todo-date">Due: ${formatFullDate(new Date(todo.dueDate))}</div>
+                    </div>
+                    <div class="todo-actions">
+                        <button class="todo-edit-btn" data-index="${index}">Edit</button>
+                        <button class="todo-delete-btn" data-index="${index}">Delete</button>
+                    </div>
+                `;
+
+                todosList.appendChild(li);
+            });
+
+            // Add event listeners to checkboxes
+            document.querySelectorAll(".todo-checkbox").forEach(checkbox => {
+                checkbox.addEventListener("change", function() {
+                    const todoIndex = this.dataset.index;
+                    const todo = todos[todoIndex];
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const dueDate = new Date(todo.dueDate);
+                    dueDate.setHours(0, 0, 0, 0);
+                    
+                    // Only allow marking complete if today is the due date or later
+                    if (today >= dueDate) {
+                        toggleTodoComplete(todoIndex);
+                        todoError.style.display = "none";
+                    } else {
+                        this.checked = false;
+                        todoError.textContent = "You can only mark tasks as complete on or after the due date.";
+                        todoError.style.display = "block";
+                    }
+                });
+            });
+
+            // Add event listeners to edit buttons
+            document.querySelectorAll(".todo-edit-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    editTodo(this.dataset.index);
+                });
+            });
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll(".todo-delete-btn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    deleteTodo(this.dataset.index);
+                });
+            });
+        }
+
+        // Update habit completion status
+        function updateHabitCompletion(habitIndex, dateStr, isCompleted) {
+            const habit = habits[habitIndex];
+
+            if (!habit.completedDays) {
+                habit.completedDays = [];
+            }
+
+            if (isCompleted) {
+                if (!habit.completedDays.includes(dateStr)) {
+                    habit.completedDays.push(dateStr);
+                }
+            } else {
+                habit.completedDays = habit.completedDays.filter(
+                    (d) => d !== dateStr
+                );
+            }
+
+            saveData();
+        }
+
+        // Navigate between date sets
+        function navigateDateSet(habitIndex, direction) {
+            const habit = habits[habitIndex];
+            const allDates = getDatesInRange(habit.startDate, habit.endDate);
+            const dateSets = getDateSets(allDates);
+
+            habit.currentSet += direction;
+
+            // Wrap around if needed
+            if (habit.currentSet < 0) habit.currentSet = dateSets.length - 1;
+            if (habit.currentSet >= dateSets.length) habit.currentSet = 0;
+
+            saveData();
+            renderHabits();
+        }
+
+        // Delete a habit
+        function deleteHabit(index) {
+            habits.splice(index, 1);
+            saveData();
+            renderHabits();
+        }
+
+        // Add new habit
+        function addHabit() {
+            const name = habitInput.value.trim();
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+
+            if (name && startDate && endDate) {
+                habits.push({
+                    name: name,
+                    startDate: startDate,
+                    endDate: endDate,
+                    completedDays: [],
+                    currentSet: 0,
+                });
+
+                saveData();
+                habitInput.value = "";
+                startDatePicker.clear();
+                endDatePicker.clear();
+                renderHabits();
+            }
+        }
+
+        // Add new streak
+        function addStreak() {
+            const name = streakNameInput.value.trim();
+            const startDate = streakStartDateInput.value;
+
+            if (name && startDate) {
+                streaks.push({
+                    name: name,
+                    startDate: startDate,
+                    lastLogged: null
+                });
+
+                saveData();
+                streakNameInput.value = "";
+                streakStartDatePicker.clear();
+                renderStreaks();
+            }
+        }
+
+        // Log a day for a streak
+        function logStreakDay(index) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            streaks[index].lastLogged = today.toISOString().split('T')[0];
+            saveData();
+            renderStreaks();
+        }
+
+        // Reset a streak
+        function resetStreak(index) {
+            streaks[index].startDate = formatYMD(new Date());
+            streaks[index].lastLogged = null;
+            saveData();
+            renderStreaks();
+        }
+
+        // Delete a streak
+        function deleteStreak(index) {
+            streaks.splice(index, 1);
+            saveData();
+            renderStreaks();
+        }
+
+        // Add new todo
+        function addTodo() {
+            const name = todoInput.value.trim();
+            const dueDate = todoDueDateInput.value;
+
+            if (name && dueDate) {
+                todos.push({
+                    name: name,
+                    dueDate: dueDate,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                });
+
+                saveData();
+                todoInput.value = "";
+                todoDueDatePicker.clear();
+                renderTodos(getCurrentFilter());
+            }
+        }
+
+        // Toggle todo completion status
+        function toggleTodoComplete(index) {
+            todos[index].completed = !todos[index].completed;
+            saveData();
+            renderTodos(getCurrentFilter());
+        }
+
+        // Edit todo
+        function editTodo(index) {
+            const todo = todos[index];
+            const editForm = document.createElement("div");
+            editForm.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">Task Name</label>
+                    <input type="text" class="habit-input" id="editTodoName" value="${todo.name}" style="width: 100%;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">Due Date</label>
+                    <input type="text" class="habit-input" id="editTodoDate" value="${todo.dueDate}" style="width: 100%;">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="add-btn" id="saveEditBtn">Save</button>
+                    <button class="delete-btn" id="cancelEditBtn">Cancel</button>
+                </div>
+            `;
+            
+            // Create a modal
+            const modal = document.createElement("div");
+            modal.style.position = "fixed";
+            modal.style.top = "0";
+            modal.style.left = "0";
+            modal.style.right = "0";
+            modal.style.bottom = "0";
+            modal.style.backgroundColor = "rgba(0,0,0,0.5)";
+            modal.style.display = "flex";
+            modal.style.justifyContent = "center";
+            modal.style.alignItems = "center";
+            modal.style.zIndex = "1000";
+            
+            const modalContent = document.createElement("div");
+            modalContent.style.backgroundColor = "var(--card-bg)";
+            modalContent.style.padding = "20px";
+            modalContent.style.borderRadius = "8px";
+            modalContent.style.width = "90%";
+            modalContent.style.maxWidth = "500px";
+            modalContent.appendChild(editForm);
+            modal.appendChild(modalContent);
+            
+            document.body.appendChild(modal);
+            
+            // Initialize date picker
+            const editDateInput = document.getElementById("editTodoDate");
+            const editDatePicker = flatpickr(editDateInput, {
+                dateFormat: "Y-m-d",
+                defaultDate: todo.dueDate
+            });
+            
+            // Save button handler
+            document.getElementById("saveEditBtn").addEventListener("click", function() {
+                const newName = document.getElementById("editTodoName").value.trim();
+                const newDate = editDateInput.value;
+                
+                if (newName && newDate) {
+                    todos[index].name = newName;
+                    todos[index].dueDate = newDate;
+                    saveData();
+                    document.body.removeChild(modal);
+                    renderTodos(getCurrentFilter());
+                }
+            });
+            
+            // Cancel button handler
+            document.getElementById("cancelEditBtn").addEventListener("click", function() {
+                document.body.removeChild(modal);
+            });
+        }
+
+        // Delete todo
+        function deleteTodo(index) {
+            todos.splice(index, 1);
+            saveData();
+            renderTodos(getCurrentFilter());
+        }
+
+        // Get current filter
+        function getCurrentFilter() {
+            const activeFilter = document.querySelector(".filter-btn.active");
+            return activeFilter ? activeFilter.dataset.filter : "all";
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem("habits", JSON.stringify(habits));
+            localStorage.setItem("streaks", JSON.stringify(streaks));
+            localStorage.setItem("todos", JSON.stringify(todos));
+            localStorage.setItem("userName", userName);
+            localStorage.setItem("darkMode", darkMode);
+        }
+
+        // Navigation between sections
+        navLinks.forEach(link => {
+            link.addEventListener("click", function() {
+                // Remove active class from all links
+                navLinks.forEach(l => l.classList.remove("active"));
+                // Add active class to clicked link
+                this.classList.add("active");
+                
+                // Hide all sections
+                pageSections.forEach(section => {
+                    section.classList.remove("active");
+                });
+                
+                // Show the selected section
+                const sectionId = this.getAttribute("data-section");
+                document.getElementById(sectionId).classList.add("active");
+            });
+        });
+
+        // Settings panel toggle - now with proper visibility control
+        settingsBtn.addEventListener("click", function() {
+            settingsPanel.classList.add("open");
+            overlay.classList.add("active");
+            userNameInput.value = userName;
+        });
+
+        closeSettings.addEventListener("click", function() {
+            settingsPanel.classList.remove("open");
+            overlay.classList.remove("active");
+        });
+
+        overlay.addEventListener("click", function() {
+            settingsPanel.classList.remove("open");
+            this.classList.remove("active");
+        });
+
+        // Dark mode toggle
+        darkModeToggle.addEventListener("change", function() {
+            darkMode = this.checked;
+            if (darkMode) {
+                document.body.classList.add("dark-mode");
+            } else {
+                document.body.classList.remove("dark-mode");
+            }
+            saveData();
+        });
+
+        // Save name
+        saveNameBtn.addEventListener("click", function() {
+            const newName = userNameInput.value.trim();
+            if (newName) {
+                userName = newName;
+                userNameElement.textContent = userName;
+                userNameHabitMakingElement.textContent = userName;
+                userNameTodoElement.textContent = userName;
+                saveData();
+                settingsPanel.classList.remove("open");
+                overlay.classList.remove("active");
+            }
+        });
+
+        // Add event listeners for filter buttons
+        filterButtons.forEach(button => {
+            button.addEventListener("click", function() {
+                filterButtons.forEach(btn => btn.classList.remove("active"));
+                this.classList.add("active");
+                renderTodos(this.dataset.filter);
+            });
+        });
+
+        // Event listeners
+        addBtn.addEventListener("click", addHabit);
+        addStreakBtn.addEventListener("click", addStreak);
+        addTodoBtn.addEventListener("click", addTodo);
+
+        // Initialize
+        userNameElement.textContent = userName;
+        userNameHabitMakingElement.textContent = userName;
+        userNameTodoElement.textContent = userName;
+        updateCurrentDate();
+        renderHabits();
+        renderStreaks();
+        renderTodos();
+    </script>
+</body>
+</html>
